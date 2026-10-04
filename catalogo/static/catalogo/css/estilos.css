@@ -1,0 +1,72 @@
+/* Estilos propios de TechStore INACAP */
+
+:root {
+    --ts-oscuro: #0f172a;
+    --ts-acento: #c2410c;
+}
+
+body {
+    background-color: #f1f5f9;
+}
+
+.navbar-techstore {
+    background-color: var(--ts-oscuro);
+    border-bottom: 3px solid var(--ts-acento);
+}
+
+.footer-techstore {
+    background-color: var(--ts-oscuro);
+    color: #cbd5e1;
+}
+
+/* Tarjetas de productos */
+.card-producto {
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.card-producto:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(15, 23, 42, .15) !important;
+}
+
+.card-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 140px;
+    font-size: 3.5rem;
+    color: #fff;
+}
+
+.card-producto .card-icono {
+    border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;
+}
+
+.card-icono-grande {
+    min-height: 260px;
+    font-size: 6rem;
+}
+
+/* Color de fondo según categoría */
+.cat-consolas    { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+.cat-notebooks   { background: linear-gradient(135deg, #0f766e, #14b8a6); }
+.cat-escritorio  { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
+.cat-componentes { background: linear-gradient(135deg, #b45309, #f59e0b); }
+.cat-perifericos { background: linear-gradient(135deg, #be123c, #f43f5e); }
+
+.precio {
+    font-weight: 700;
+    color: var(--ts-acento);
+    font-size: 1.2rem;
+}
+
+.descripcion {
+    white-space: normal;
+}
+
+/* Campos con error en formularios */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ts-acento);
+    box-shadow: 0 0 0 .2rem rgba(194, 65, 12, .2);
+}

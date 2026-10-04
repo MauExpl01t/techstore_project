@@ -1,0 +1,156 @@
+[
+  {
+    "model": "catalogo.producto",
+    "pk": 1,
+    "fields": {
+      "nombre": "PlayStation 5 Slim 1TB",
+      "categoria": "CONSOLAS",
+      "precio": "549990",
+      "stock": 12,
+      "descripcion": "Consola Sony PlayStation 5 Slim edición estándar con lector de discos.\nCPU AMD Zen 2 de 8 núcleos, GPU RDNA 2 de 10,3 TFLOPS, SSD de 1TB, salida 4K hasta 120 Hz.\nIncluye control inalámbrico DualSense.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 2,
+    "fields": {
+      "nombre": "Nintendo Switch OLED",
+      "categoria": "CONSOLAS",
+      "precio": "379990",
+      "stock": 8,
+      "descripcion": "Consola híbrida Nintendo Switch modelo OLED.\nPantalla OLED de 7 pulgadas, 64GB de almacenamiento interno, base con puerto LAN y Joy-Con blancos.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 3,
+    "fields": {
+      "nombre": "Xbox Series X 1TB",
+      "categoria": "CONSOLAS",
+      "precio": "599990",
+      "stock": 0,
+      "descripcion": "Consola Microsoft Xbox Series X.\nCPU AMD Zen 2 de 8 núcleos a 3,8 GHz, GPU de 12 TFLOPS, SSD NVMe de 1TB, compatible con Xbox Game Pass.",
+      "estado": false,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 4,
+    "fields": {
+      "nombre": "Notebook Lenovo IdeaPad Slim 5 14\"",
+      "categoria": "NOTEBOOKS",
+      "precio": "699990",
+      "stock": 6,
+      "descripcion": "Procesador AMD Ryzen 7 8845HS, 16GB RAM LPDDR5x, SSD 512GB NVMe.\nPantalla 14\" WUXGA IPS, Wi-Fi 6E, Windows 11 Home.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 5,
+    "fields": {
+      "nombre": "Notebook Gamer ASUS TUF A15",
+      "categoria": "NOTEBOOKS",
+      "precio": "1099990",
+      "stock": 4,
+      "descripcion": "Procesador AMD Ryzen 7 7435HS, tarjeta gráfica NVIDIA GeForce RTX 4060 8GB.\n16GB RAM DDR5, SSD 1TB, pantalla 15,6\" FHD 144 Hz.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 6,
+    "fields": {
+      "nombre": "MacBook Air 13\" M3",
+      "categoria": "NOTEBOOKS",
+      "precio": "1249990",
+      "stock": 3,
+      "descripcion": "Chip Apple M3 con CPU de 8 núcleos y GPU de 8 núcleos.\n8GB de memoria unificada, SSD 256GB, pantalla Liquid Retina de 13,6\".",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 7,
+    "fields": {
+      "nombre": "PC Gamer TechStore Ryzen 5 / RTX 4060",
+      "categoria": "ESCRITORIO",
+      "precio": "899990",
+      "stock": 5,
+      "descripcion": "Equipo armado por TechStore: AMD Ryzen 5 7600, placa B650, 32GB DDR5 6000 MHz.\nNVIDIA RTX 4060 8GB, SSD NVMe 1TB, fuente 650W 80+ Bronze, gabinete ATX con 4 ventiladores.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 8,
+    "fields": {
+      "nombre": "Tarjeta de video NVIDIA GeForce RTX 4070 Super 12GB",
+      "categoria": "COMPONENTES",
+      "precio": "689990",
+      "stock": 7,
+      "descripcion": "GPU arquitectura Ada Lovelace, 12GB GDDR6X, interfaz PCIe 4.0.\nSalidas: 3x DisplayPort 1.4a, 1x HDMI 2.1. Fuente recomendada 650W.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 9,
+    "fields": {
+      "nombre": "SSD Kingston NV2 1TB NVMe",
+      "categoria": "COMPONENTES",
+      "precio": "54990",
+      "stock": 25,
+      "descripcion": "Unidad de estado sólido M.2 2280 PCIe 4.0 NVMe.\nLectura hasta 3.500 MB/s, escritura hasta 2.100 MB/s.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 10,
+    "fields": {
+      "nombre": "Teclado mecánico Logitech G Pro X TKL",
+      "categoria": "PERIFERICOS",
+      "precio": "149990",
+      "stock": 10,
+      "descripcion": "Teclado mecánico tenkeyless inalámbrico LIGHTSPEED y Bluetooth.\nSwitches GX táctiles, iluminación RGB LIGHTSYNC.",
+      "estado": true,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalogo.producto",
+    "pk": 11,
+    "fields": {
+      "nombre": "Mouse Razer DeathAdder V3",
+      "categoria": "PERIFERICOS",
+      "precio": "69990",
+      "stock": 0,
+      "descripcion": "Mouse gamer ergonómico de 59 g, sensor óptico Focus Pro 30K.\nSwitches ópticos Gen-3, polling rate 8000 Hz.",
+      "estado": false,
+      "creado": "2026-10-04T12:00:00Z",
+      "actualizado": "2026-10-04T12:00:00Z"
+    }
+  }
+]

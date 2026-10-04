@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load formato %}
+
+{% block title %}{{ producto.nombre }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalogo:lista' %}">Catálogo</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalogo:lista' %}?categoria={{ producto.categoria }}">{{ producto.get_categoria_display }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ producto.nombre }}</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm">
+    <div class="row g-0">
+        <div class="col-md-4 d-flex">
+            <div class="card-icono card-icono-grande cat-{{ producto.categoria|lower }} flex-fill rounded-start">
+                <i class="bi {{ producto.icono }}"></i>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card-body p-4">
+                <span class="badge text-bg-light border mb-2">{{ producto.get_categoria_display }}</span>
+                <h1 class="h3">{{ producto.nombre }}</h1>
+                <p class="precio fs-3 mb-3">${{ producto.precio|clp }}</p>
+
+                <h2 class="h6 text-uppercase text-muted">Ficha técnica</h2>
+                <table class="table table-sm mb-4">
+                    <tbody>
+                        <tr><th scope="row" class="w-25">Categoría</th><td>{{ producto.get_categoria_display }}</td></tr>
+                        <tr><th scope="row">Precio</th><td>${{ producto.precio|clp }} CLP</td></tr>
+                        <tr><th scope="row">Stock</th><td>{{ producto.stock }} unidad{{ producto.stock|pluralize:"es" }}</td></tr>
+                        <tr>
+                            <th scope="row">Estado</th>
+                            <td>
+                                {% if producto.estado %}
+                                    <span class="badge text-bg-success">Disponible</span>
+                                {% else %}
+                                    <span class="badge text-bg-danger">Agotado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr><th scope="row">Última actualización</th><td>{{ producto.actualizado|date:"d/m/Y H:i" }}</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 class="h6 text-uppercase text-muted">Descripción</h2>
+                <p class="descripcion">{{ producto.descripcion|linebreaksbr }}</p>
+
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a href="{% url 'catalogo:lista' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al catálogo
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'catalogo:editar' producto.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a href="{% url 'catalogo:eliminar' producto.pk %}" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
