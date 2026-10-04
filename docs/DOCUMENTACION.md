@@ -209,7 +209,7 @@ python manage.py createsuperuser
 
 - `catalogo/fixtures/productos.json` contiene 11 productos reales de ejemplo
   (PS5, Switch OLED, Xbox Series X, notebooks, RTX 4070, etc.).
-- Superusuario de prueba: **`admin` / `TechStore2026`**.
+- Superusuario de prueba: **`admin` / `admin`**.
 
 ### Paso 13 – Pruebas automatizadas y control de versiones
 
@@ -296,7 +296,7 @@ Resultado: **8 pruebas, todas correctas (OK)**.
 
 - [x] El catálogo y el detalle se ven sin iniciar sesión.
 - [x] Al entrar a una vista privada sin sesión se redirige al login.
-- [x] El login con `admin` / `TechStore2026` funciona y vuelve a la página solicitada.
+- [x] El login con `admin` / `admin` funciona y vuelve a la página solicitada.
 - [x] La barra de navegación cambia según el estado del usuario.
 - [x] El formulario muestra errores en español y marca los campos en rojo.
 - [x] Los productos guardados se ven tanto en el catálogo como en `/admin/`.

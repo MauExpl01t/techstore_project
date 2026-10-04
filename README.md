@@ -18,7 +18,7 @@ Sistema web interno de administración del catálogo de productos electrónicos 
 
 | Usuario | Contraseña      |
 |---------|-----------------|
-| `admin` | `TechStore2026` |
+| `admin` | `admin` |
 
 Sirven tanto para el login del sitio (`/login/`) como para el panel administrativo (`/admin/`).
 
@@ -72,7 +72,7 @@ python manage.py loaddata productos
 python manage.py createsuperuser
 ```
 
-Al crear el superusuario usar `admin` como nombre de usuario y `TechStore2026` como contraseña
+Al crear el superusuario usar `admin` como nombre de usuario y `admin` como contraseña
 (si Django advierte que la contraseña es poco segura, responder `y`).
 
 ### 6. Ejecutar el servidor
