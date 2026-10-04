@@ -6,6 +6,11 @@ Sistema web interno de administración del catálogo de productos electrónicos 
 - Proyecto: `techstore_project`
 - App principal: `catalogo`
 - Base de datos: SQLite (`db.sqlite3`)
+- Autor: MauExpl01t
+
+📄 **Documentación completa del desarrollo (paso a paso, capturas y pruebas):** [docs/DOCUMENTACION.md](docs/DOCUMENTACION.md)
+
+![Catálogo de TechStore INACAP](docs/img/04-catalogo-autenticado.png)
 
 ---
 
@@ -24,8 +29,8 @@ Sirven tanto para el login del sitio (`/login/`) como para el panel administrati
 ### 1. Clonar el repositorio y entrar a la carpeta
 
 ```bash
-git clone <url-del-repositorio>
-cd BACK_END_2
+git clone https://github.com/MauExpl01t/techstore_project.git
+cd techstore_project
 ```
 
 ### 2. Crear y activar el entorno virtual
@@ -106,11 +111,14 @@ y, tras iniciar sesión, vuelve a la página que pidió.
 ## Estructura del proyecto
 
 ```
-BACK_END_2/
+techstore_project/   (raíz del repositorio)
 ├── manage.py
 ├── requirements.txt
 ├── README.md
 ├── db.sqlite3
+├── docs/
+│   ├── DOCUMENTACION.md        # Documentación del desarrollo
+│   └── img/                    # Capturas de pantalla
 ├── techstore_project/          # Configuración del proyecto
 │   ├── settings.py
 │   └── urls.py                 # admin, login, logout e include de catalogo
