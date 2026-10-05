@@ -191,12 +191,12 @@ path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 - El botón *Cerrar sesión* es un formulario **POST** con `{% csrf_token %}`, porque desde
   Django 5 el logout ya no acepta GET.
 - `lista.html` presenta los productos en **tarjetas (cards)** dentro de una grilla de Bootstrap;
-  cada tarjeta tiene un color e ícono según la categoría (consola, notebook, PC, etc.).
+  cada tarjeta tiene un ícono según la categoría (consola, notebook, PC, etc.).
 
 ### Paso 11 – Estilos y formato de precios
 
-- `catalogo/static/catalogo/css/estilos.css`: colores corporativos, efecto al pasar el mouse
-  sobre las tarjetas y degradados por categoría.
+- `catalogo/static/catalogo/css/estilos.css`: paleta sobria en grises, sombra suave al pasar el mouse
+  sobre las tarjetas y estilos de foco en los formularios.
 - `catalogo/templatetags/formato.py`: filtro propio `|clp` que muestra los precios
   con formato chileno (`549990` → `$549.990`).
 

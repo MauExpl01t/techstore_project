@@ -15,7 +15,7 @@
 <div class="card shadow-sm">
     <div class="row g-0">
         <div class="col-md-4 d-flex">
-            <div class="card-icono card-icono-grande cat-{{ producto.categoria|lower }} flex-fill rounded-start">
+            <div class="card-icono card-icono-grande flex-fill rounded-start">
                 <i class="bi {{ producto.icono }}"></i>
             </div>
         </div>
@@ -35,9 +35,9 @@
                             <th scope="row">Estado</th>
                             <td>
                                 {% if producto.estado %}
-                                    <span class="badge text-bg-success">Disponible</span>
+                                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Disponible</span>
                                 {% else %}
-                                    <span class="badge text-bg-danger">Agotado</span>
+                                    <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Agotado</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -53,10 +53,10 @@
                         <i class="bi bi-arrow-left"></i> Volver al catálogo
                     </a>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'catalogo:editar' producto.pk %}" class="btn btn-warning">
+                        <a href="{% url 'catalogo:editar' producto.pk %}" class="btn btn-outline-secondary">
                             <i class="bi bi-pencil"></i> Editar
                         </a>
-                        <a href="{% url 'catalogo:eliminar' producto.pk %}" class="btn btn-danger">
+                        <a href="{% url 'catalogo:eliminar' producto.pk %}" class="btn btn-outline-danger">
                             <i class="bi bi-trash"></i> Eliminar
                         </a>
                     {% endif %}

@@ -181,7 +181,7 @@ y el modelo está registrado en el panel `/admin/` con filtros, búsqueda y edic
 - La barra de navegación cambia según `user.is_authenticated`:
   - **Anónimo**: muestra "Visitante" y el botón *Iniciar sesión*.
   - **Autenticado**: muestra *Nuevo producto*, *Panel admin* (si es staff), el saludo con el nombre del usuario y *Cerrar sesión*.
-- El catálogo presenta los productos en **tarjetas (cards)** en grilla, con ícono y color según la categoría (consolas, notebooks, PC de escritorio, etc.), badge de estado y precio.
+- El catálogo presenta los productos en **tarjetas (cards)** en grilla, con un ícono según la categoría (consolas, notebooks, PC de escritorio, etc.), badge de estado y precio, en una paleta sobria de grises.
 
 ### 5. Formularios y widgets (25 pts) – `catalogo/forms.py`
 `ProductoForm` es un `ModelForm` con widgets personalizados:

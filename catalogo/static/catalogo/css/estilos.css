@@ -1,32 +1,35 @@
-/* Estilos propios de TechStore INACAP */
+/* Estilos propios de TechStore INACAP – paleta sobria en grises */
 
 :root {
-    --ts-oscuro: #0f172a;
-    --ts-acento: #c2410c;
+    --ts-oscuro: #1f2937;   /* gris carbón: navbar, pie y botones principales */
+    --ts-texto: #111827;
+    --ts-suave: #6b7280;
+    --ts-fondo: #f5f6f8;
+    --ts-panel: #f3f4f6;
 }
 
 body {
-    background-color: #f1f5f9;
+    background-color: var(--ts-fondo);
+    color: var(--ts-texto);
 }
 
 .navbar-techstore {
     background-color: var(--ts-oscuro);
-    border-bottom: 3px solid var(--ts-acento);
+    border-bottom: 1px solid #111827;
 }
 
 .footer-techstore {
     background-color: var(--ts-oscuro);
-    color: #cbd5e1;
+    color: #9ca3af;
 }
 
 /* Tarjetas de productos */
 .card-producto {
-    transition: transform .15s ease, box-shadow .15s ease;
+    transition: box-shadow .15s ease;
 }
 
 .card-producto:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 .5rem 1rem rgba(15, 23, 42, .15) !important;
+    box-shadow: 0 .25rem .75rem rgba(17, 24, 39, .12) !important;
 }
 
 .card-icono {
@@ -34,39 +37,57 @@ body {
     align-items: center;
     justify-content: center;
     height: 140px;
-    font-size: 3.5rem;
-    color: #fff;
+    font-size: 3.25rem;
+    color: #4b5563;
+    background-color: var(--ts-panel);
 }
 
 .card-producto .card-icono {
+    border-bottom: 1px solid var(--bs-border-color);
     border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;
 }
 
 .card-icono-grande {
+    height: auto;
     min-height: 260px;
     font-size: 6rem;
+    border-right: 1px solid var(--bs-border-color);
 }
-
-/* Color de fondo según categoría */
-.cat-consolas    { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
-.cat-notebooks   { background: linear-gradient(135deg, #0f766e, #14b8a6); }
-.cat-escritorio  { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
-.cat-componentes { background: linear-gradient(135deg, #b45309, #f59e0b); }
-.cat-perifericos { background: linear-gradient(135deg, #be123c, #f43f5e); }
 
 .precio {
     font-weight: 700;
-    color: var(--ts-acento);
+    color: var(--ts-texto);
     font-size: 1.2rem;
+}
+
+.breadcrumb a {
+    color: var(--ts-suave);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    color: var(--ts-texto);
+    text-decoration: underline;
 }
 
 .descripcion {
     white-space: normal;
 }
 
-/* Campos con error en formularios */
+/* Foco y selección en formularios */
 .form-control:focus,
 .form-select:focus {
-    border-color: var(--ts-acento);
-    box-shadow: 0 0 0 .2rem rgba(194, 65, 12, .2);
+    border-color: var(--ts-suave);
+    box-shadow: 0 0 0 .2rem rgba(107, 114, 128, .2);
+}
+
+.form-check-input:checked {
+    background-color: var(--ts-oscuro);
+    border-color: var(--ts-oscuro);
+}
+
+/* Botón principal en gris carbón */
+.btn-dark {
+    --bs-btn-bg: var(--ts-oscuro);
+    --bs-btn-border-color: var(--ts-oscuro);
 }

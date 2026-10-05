@@ -10,7 +10,7 @@
         <p class="text-muted mb-0">Consolas, computadores, componentes y periféricos</p>
     </div>
     {% if user.is_authenticated %}
-        <a href="{% url 'catalogo:crear' %}" class="btn btn-primary">
+        <a href="{% url 'catalogo:crear' %}" class="btn btn-dark">
             <i class="bi bi-plus-lg"></i> Nuevo producto
         </a>
     {% endif %}
@@ -29,7 +29,7 @@
         </select>
     </div>
     <div class="col-md-2 d-grid">
-        <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> Filtrar</button>
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i> Filtrar</button>
     </div>
 </form>
 
@@ -37,32 +37,32 @@
     {% for producto in productos %}
         <div class="col">
             <div class="card h-100 card-producto shadow-sm">
-                <div class="card-icono cat-{{ producto.categoria|lower }}">
+                <div class="card-icono">
                     <i class="bi {{ producto.icono }}"></i>
                 </div>
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
                         <span class="badge text-bg-light border">{{ producto.get_categoria_display }}</span>
                         {% if producto.estado %}
-                            <span class="badge text-bg-success">Disponible</span>
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Disponible</span>
                         {% else %}
-                            <span class="badge text-bg-danger">Agotado</span>
+                            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Agotado</span>
                         {% endif %}
                     </div>
                     <h2 class="h6 card-title">{{ producto.nombre }}</h2>
                     <p class="card-text small text-muted flex-grow-1">{{ producto.descripcion|truncatechars:90 }}</p>
                     <p class="precio mb-1">${{ producto.precio|clp }}</p>
                     <p class="small text-muted mb-3">Stock: {{ producto.stock }} unidad{{ producto.stock|pluralize:"es" }}</p>
-                    <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                    <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-dark btn-sm">
                         <i class="bi bi-info-circle"></i> Ver detalle
                     </a>
                 </div>
                 {% if user.is_authenticated %}
                     <div class="card-footer bg-transparent d-flex gap-2">
-                        <a href="{% url 'catalogo:editar' producto.pk %}" class="btn btn-sm btn-warning flex-fill">
+                        <a href="{% url 'catalogo:editar' producto.pk %}" class="btn btn-sm btn-outline-secondary flex-fill">
                             <i class="bi bi-pencil"></i> Editar
                         </a>
-                        <a href="{% url 'catalogo:eliminar' producto.pk %}" class="btn btn-sm btn-danger flex-fill">
+                        <a href="{% url 'catalogo:eliminar' producto.pk %}" class="btn btn-sm btn-outline-danger flex-fill">
                             <i class="bi bi-trash"></i> Eliminar
                         </a>
                     </div>
