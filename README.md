@@ -5,7 +5,7 @@ Sistema web interno de administración del catálogo de productos electrónicos 
 
 - Proyecto: `techstore_project`
 - App principal: `catalogo`
-- Base de datos: SQLite (`db.sqlite3`)
+- Base de datos: MySQL 8.0 (`techstore_db`)
 - Autor: MauExpl01t
 
 📄 **Documentación completa del desarrollo (paso a paso, capturas y pruebas):** [docs/DOCUMENTACION.md](docs/DOCUMENTACION.md)
@@ -55,17 +55,35 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Aplicar migraciones
+### 4. Crear la base de datos en MySQL
+
+Requiere MySQL Server 8.0 o superior. El script [`mysql/crear_base_datos.sql`](mysql/crear_base_datos.sql)
+crea la base `techstore_db` y el usuario `techstore_user`. Se ejecuta una sola vez como `root`:
+
+```powershell
+& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p -e "source mysql/crear_base_datos.sql"
+```
+
+También se puede abrir y ejecutar el script desde MySQL Workbench (**File → Open SQL Script…** y luego ⚡).
+
+### 5. Configurar la conexión (`.env`)
+
+Las credenciales de MySQL se leen desde un archivo `.env`, que no se sube al repositorio.
+Copiar el archivo de ejemplo:
+
+```powershell
+copy .env.example .env
+```
+
+Los valores de `.env.example` ya coinciden con el usuario que crea el script del paso 4.
+
+### 6. Aplicar migraciones
 
 ```bash
-python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5. Cargar productos de ejemplo y crear el superusuario
-
-> El repositorio ya incluye `db.sqlite3` con los productos de ejemplo y el usuario `admin`.
-> Este paso solo es necesario si se parte con una base de datos vacía.
+### 7. Cargar productos de ejemplo y crear el superusuario
 
 ```bash
 python manage.py loaddata productos
@@ -75,7 +93,7 @@ python manage.py createsuperuser
 Al crear el superusuario usar `admin` como nombre de usuario y `admin` como contraseña
 (si Django advierte que la contraseña es poco segura, responder `y`).
 
-### 6. Ejecutar el servidor
+### 8. Ejecutar el servidor
 
 ```bash
 python manage.py runserver
@@ -83,7 +101,7 @@ python manage.py runserver
 
 Abrir <http://127.0.0.1:8000/>.
 
-### 7. (Opcional) Ejecutar las pruebas automatizadas
+### 9. (Opcional) Ejecutar las pruebas automatizadas
 
 ```bash
 python manage.py test catalogo
@@ -115,7 +133,9 @@ techstore_project/   (raíz del repositorio)
 ├── manage.py
 ├── requirements.txt
 ├── README.md
-├── db.sqlite3
+├── .env.example                # Modelo de credenciales de MySQL
+├── mysql/
+│   └── crear_base_datos.sql    # Crea la base de datos y el usuario
 ├── docs/
 │   ├── DOCUMENTACION.md        # Documentación del desarrollo
 │   └── img/                    # Capturas de pantalla
@@ -164,7 +184,8 @@ Regla de negocio: si el stock es 0, al guardar el producto queda automáticament
 La migración inicial está en `catalogo/migrations/0001_initial.py`.
 
 ### 2. Conexión a BD (10 pts)
-SQLite configurado en `settings.DATABASES`. Todos los datos se leen y escriben con el ORM
+MySQL configurado en `settings.DATABASES` (motor `django.db.backends.mysql`, conector `mysqlclient`,
+credenciales en `.env`). Todos los datos se leen y escriben con el ORM
 (`Producto.objects.all()`, `filter()`, `get_object_or_404`, `form.save()`, `delete()`),
 y el modelo está registrado en el panel `/admin/` con filtros, búsqueda y edición rápida.
 
@@ -196,6 +217,6 @@ El formulario de login (`LoginForm`) también usa widgets con clases CSS.
 
 ## Tecnologías
 
-- Python 3 / Django (ver `requirements.txt`)
+- Python 3 / Django 5.2 LTS (ver `requirements.txt`)
 - Bootstrap 5 y Bootstrap Icons (CDN)
-- SQLite
+- MySQL 8.0 (conector `mysqlclient`)

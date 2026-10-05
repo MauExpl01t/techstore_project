@@ -11,3 +11,9 @@ __pycache__/
 .vscode/
 .idea/
 .claude/
+
+# Credenciales locales
+.env
+
+# Base de datos SQLite (ya no se usa; el proyecto usa MySQL)
+db.sqlite3

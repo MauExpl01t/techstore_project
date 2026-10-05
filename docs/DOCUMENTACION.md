@@ -34,8 +34,11 @@ Cualquier persona puede ver el catálogo, pero solo los usuarios que inician ses
 | Tecnología | Uso |
 |------------|-----|
 | Python 3 | Lenguaje de programación |
-| Django | Framework web (modelos, vistas, plantillas, autenticación, admin) |
-| SQLite | Motor de base de datos (incluido con Python) |
+| Django 5.2 LTS | Framework web (modelos, vistas, plantillas, autenticación, admin) |
+| MySQL 8.0 | Motor de base de datos |
+| mysqlclient | Conector que permite a Django comunicarse con MySQL |
+| python-dotenv | Lee las credenciales de MySQL desde el archivo `.env` |
+| MySQL Workbench | Interfaz gráfica para administrar y revisar la base de datos |
 | Bootstrap 5 + Bootstrap Icons | Diseño de la interfaz (cargados por CDN) |
 | Git | Control de versiones |
 
@@ -50,12 +53,15 @@ Se creó un entorno virtual para aislar las dependencias del proyecto y se insta
 ```bash
 python -m venv venv
 .\venv\Scripts\Activate.ps1
-pip install django
+pip install "django>=5.2,<5.3" mysqlclient python-dotenv
 pip freeze > requirements.txt
 ```
 
-`requirements.txt` guarda las versiones exactas, para que cualquiera pueda reproducir el entorno
-con `pip install -r requirements.txt`.
+- Se usa **Django 5.2 LTS** porque es compatible con MySQL 8.0 (Django 6 exige MySQL 8.4 o superior)
+  y tiene soporte extendido hasta abril de 2028.
+- `mysqlclient` es el conector de MySQL que recomienda la documentación de Django.
+- `requirements.txt` guarda las versiones exactas, para que cualquiera pueda reproducir el entorno
+  con `pip install -r requirements.txt`.
 
 ### Paso 2 – Creación del proyecto y la app
 
@@ -80,7 +86,34 @@ LOGIN_REDIRECT_URL = 'catalogo:lista'      # a dónde va después de iniciar ses
 LOGOUT_REDIRECT_URL = 'catalogo:lista'     # a dónde va después de cerrar sesión
 ```
 
-- Base de datos: se usa la configuración por defecto de SQLite (`db.sqlite3`).
+- Base de datos MySQL. Primero se creó la base y un usuario propio para el proyecto con el script
+  `mysql/crear_base_datos.sql`, ejecutado como `root` (por terminal o desde MySQL Workbench):
+
+```sql
+CREATE DATABASE IF NOT EXISTS techstore_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'techstore_user'@'localhost' IDENTIFIED BY '...';
+GRANT ALL PRIVILEGES ON techstore_db.* TO 'techstore_user'@'localhost';
+```
+
+  Luego se configuró la conexión en `settings.py`. Las credenciales no se escriben en el código:
+  se leen del archivo `.env` (que no se sube a Git) con `python-dotenv`:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME', 'techstore_db'),
+        'USER': os.getenv('DB_USER', 'techstore_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
+        'OPTIONS': {'charset': 'utf8mb4'},
+    }
+}
+```
+
+  - Se usa un usuario propio (`techstore_user`) y no `root`: solo tiene permisos sobre `techstore_db`.
+  - `utf8mb4` permite guardar cualquier carácter (tildes, ñ, símbolos).
 
 ### Paso 4 – Modelo `Producto` (`catalogo/models.py`)
 
@@ -110,7 +143,8 @@ python manage.py migrate
 ```
 
 - `makemigrations` generó `catalogo/migrations/0001_initial.py` a partir del modelo.
-- `migrate` creó las tablas en `db.sqlite3` (las de Django y la tabla `catalogo_producto`).
+- `migrate` creó las tablas en la base `techstore_db` de MySQL (las de Django y la tabla
+  `catalogo_producto`). Se pueden ver en MySQL Workbench, en el panel **Schemas**.
 
 ### Paso 6 – Panel administrativo (`catalogo/admin.py`)
 
