@@ -3,15 +3,23 @@ from django.db import models
 from django.urls import reverse
 
 
+class Categoria(models.Model):
+    """Categoría que clasifica los productos del catálogo."""
+
+    nombre = models.CharField('nombre', max_length=80, unique=True)
+    descripcion = models.TextField('descripción', blank=True)
+
+    class Meta:
+        verbose_name = 'categoría'
+        verbose_name_plural = 'categorías'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+
 class Producto(models.Model):
     """Producto electrónico del catálogo de TechStore INACAP."""
-
-    class Categoria(models.TextChoices):
-        CONSOLAS = 'CONSOLAS', 'Consolas'
-        NOTEBOOKS = 'NOTEBOOKS', 'Notebooks'
-        ESCRITORIO = 'ESCRITORIO', 'Computadores de escritorio'
-        COMPONENTES = 'COMPONENTES', 'Componentes'
-        PERIFERICOS = 'PERIFERICOS', 'Periféricos'
 
     # estado: True = disponible, False = agotado
     ESTADO_CHOICES = [
@@ -19,21 +27,23 @@ class Producto(models.Model):
         (False, 'Agotado'),
     ]
 
-    # Ícono (Bootstrap Icons) usado en las tarjetas según la categoría
+    # Ícono (Bootstrap Icons) usado en las tarjetas según el nombre de la categoría
     ICONOS = {
-        Categoria.CONSOLAS: 'bi-controller',
-        Categoria.NOTEBOOKS: 'bi-laptop',
-        Categoria.ESCRITORIO: 'bi-pc-display',
-        Categoria.COMPONENTES: 'bi-cpu',
-        Categoria.PERIFERICOS: 'bi-keyboard',
+        'consolas': 'bi-controller',
+        'notebooks': 'bi-laptop',
+        'computadores de escritorio': 'bi-pc-display',
+        'componentes': 'bi-cpu',
+        'periféricos': 'bi-keyboard',
     }
 
     nombre = models.CharField('nombre', max_length=120)
-    categoria = models.CharField(
-        'categoría',
-        max_length=20,
-        choices=Categoria.choices,
-        default=Categoria.CONSOLAS,
+    # Relación muchos a uno: muchos productos pertenecen a una categoría.
+    # PROTECT impide borrar una categoría que todavía tiene productos.
+    categoria = models.ForeignKey(
+        Categoria,
+        verbose_name='categoría',
+        on_delete=models.PROTECT,
+        related_name='productos',
     )
     precio = models.DecimalField(
         'precio (CLP)',
@@ -54,7 +64,7 @@ class Producto(models.Model):
     class Meta:
         verbose_name = 'producto'
         verbose_name_plural = 'productos'
-        ordering = ['categoria', 'nombre']
+        ordering = ['categoria__nombre', 'nombre']
 
     def __str__(self):
         return self.nombre
@@ -70,4 +80,4 @@ class Producto(models.Model):
 
     @property
     def icono(self):
-        return self.ICONOS.get(self.categoria, 'bi-box-seam')
+        return self.ICONOS.get(self.categoria.nombre.lower(), 'bi-box-seam')

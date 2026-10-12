@@ -2,7 +2,7 @@
 
 **Autor:** MauExpl01t
 **Asignatura:** Desarrollo Web / Framework Django
-**Evaluación:** Encargo Práctico CRUD Ventas
+**Evaluaciones:** Encargo Práctico CRUD Ventas (Fase 1) y Encargo Práctico API REST & Relaciones (Fase 2)
 
 Este documento describe paso a paso cómo se construyó el sistema, qué decisiones se tomaron
 y cómo se verificó que funcionara. Las instrucciones para ejecutarlo están en el [README](../README.md).
@@ -13,10 +13,11 @@ y cómo se verificó que funcionara. Las instrucciones para ejecutarlo están en
 
 1. [Objetivo](#1-objetivo)
 2. [Tecnologías utilizadas](#2-tecnologías-utilizadas)
-3. [Proceso de desarrollo paso a paso](#3-proceso-de-desarrollo-paso-a-paso)
-4. [Capturas de pantalla](#4-capturas-de-pantalla)
-5. [Pruebas realizadas](#5-pruebas-realizadas)
-6. [Decisiones de diseño](#6-decisiones-de-diseño)
+3. [Fase 1: proceso de desarrollo paso a paso](#3-fase-1-proceso-de-desarrollo-paso-a-paso)
+4. [Fase 2: relaciones y API REST](#4-fase-2-relaciones-y-api-rest)
+5. [Capturas de pantalla](#5-capturas-de-pantalla)
+6. [Pruebas realizadas](#6-pruebas-realizadas)
+7. [Decisiones de diseño](#7-decisiones-de-diseño)
 
 ---
 
@@ -27,6 +28,14 @@ de productos electrónicos (consolas, computadores, componentes y periféricos).
 Cualquier persona puede ver el catálogo, pero solo los usuarios que inician sesión pueden
 **crear, modificar y eliminar** productos.
 
+El proyecto se desarrolló en dos fases:
+
+- **Fase 1 (Evaluación 2):** CRUD web de productos con autenticación. Quedó marcada en Git con la
+  etiqueta `evaluacion-2`.
+- **Fase 2 (Evaluación 3):** los productos se clasifican con una relación hacia el modelo `Categoria`,
+  las categorías se administran desde la web y se agrega una **API REST** protegida con tokens, para
+  intercambiar información con aplicaciones móviles y plataformas externas.
+
 ---
 
 ## 2. Tecnologías utilizadas
@@ -35,6 +44,7 @@ Cualquier persona puede ver el catálogo, pero solo los usuarios que inician ses
 |------------|-----|
 | Python 3 | Lenguaje de programación |
 | Django 5.2 LTS | Framework web (modelos, vistas, plantillas, autenticación, admin) |
+| Django REST Framework 3.18 | Construcción de la API REST: serializadores, viewsets, router y autenticación por token (Fase 2) |
 | MySQL 8.0 | Motor de base de datos |
 | mysqlclient | Conector que permite a Django comunicarse con MySQL |
 | python-dotenv | Lee las credenciales de MySQL desde el archivo `.env` |
@@ -44,7 +54,10 @@ Cualquier persona puede ver el catálogo, pero solo los usuarios que inician ses
 
 ---
 
-## 3. Proceso de desarrollo paso a paso
+## 3. Fase 1: proceso de desarrollo paso a paso
+
+> Esta sección describe cómo se construyó la primera versión. Los cambios de la Fase 2
+> (por ejemplo, la categoría como relación en lugar de texto) están en la sección 4.
 
 ### Paso 1 – Entorno virtual e instalación de Django
 
@@ -256,7 +269,183 @@ git commit -m "Proyecto TechStore INACAP: CRUD de productos con Django"
 
 ---
 
-## 4. Capturas de pantalla
+## 4. Fase 2: relaciones y API REST
+
+### Paso 1 – Modelo `Categoria` y relación con `Producto` (`catalogo/models.py`)
+
+```python
+class Categoria(models.Model):
+    nombre = models.CharField('nombre', max_length=80, unique=True)
+    descripcion = models.TextField('descripción', blank=True)
+
+
+class Producto(models.Model):
+    ...
+    categoria = models.ForeignKey(
+        Categoria,
+        verbose_name='categoría',
+        on_delete=models.PROTECT,
+        related_name='productos',
+    )
+```
+
+- `Categoria.descripcion` es **opcional** gracias a `blank=True`.
+- `ForeignKey` crea una relación **muchos a uno**: muchos productos pertenecen a una categoría.
+  En MySQL es la columna `categoria_id` de `catalogo_producto`, con una restricción de clave foránea
+  hacia `catalogo_categoria`.
+- `on_delete=PROTECT`: no se puede borrar una categoría que todavía tiene productos.
+- `related_name='productos'`: desde una categoría se obtienen sus productos con `categoria.productos.all()`.
+
+### Paso 2 – Migración con conversión de datos
+
+Los 11 productos existentes tenían la categoría como texto (`'CONSOLAS'`). Para no perder datos,
+la migración `0002_categoria_y_relacion.py` se escribió a mano y hace el cambio en cinco pasos:
+
+1. Crea la tabla `catalogo_categoria`.
+2. Renombra temporalmente el campo de texto a `categoria_texto`.
+3. Agrega la `ForeignKey` `categoria`, vacía por ahora (`null=True`).
+4. Con `RunPython` crea las categorías que estaban en uso y enlaza cada producto con la suya.
+5. Elimina `categoria_texto` y deja la relación como obligatoria.
+
+```bash
+python manage.py migrate
+```
+
+Resultado: 5 categorías y los 11 productos enlazados, sin inconsistencias
+(`python manage.py makemigrations --check` responde "No changes detected").
+
+### Paso 3 – Formularios (`catalogo/forms.py`)
+
+- **`CategoriaForm`**: `ModelForm` con `nombre` y `descripcion`, widgets con clases de Bootstrap,
+  validación de mínimo 3 caracteres y mensaje propio si el nombre ya existe.
+- **`ProductoForm`**: como `categoria` ahora es una `ForeignKey`, Django genera un `ModelChoiceField`.
+  El `<select>` ya no tiene una lista fija: sus opciones se **consultan a la base de datos** cada vez
+  que se muestra el formulario.
+
+```python
+def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self.fields['categoria'].queryset = Categoria.objects.order_by('nombre')
+    self.fields['categoria'].empty_label = 'Selecciona una categoría'
+```
+
+Si se crea una categoría nueva, aparece de inmediato en el desplegable del formulario de productos.
+
+### Paso 4 – Vistas web de categorías (`catalogo/views.py`)
+
+| Vista | URL | Acceso | Qué hace |
+|-------|-----|--------|----------|
+| `lista_categorias` | `/categorias/` | Pública | Tabla de categorías con la cantidad de productos de cada una |
+| `crear_categoria` | `/categorias/nueva/` | **`@login_required`** | Formulario `CategoriaForm` |
+| `editar_categoria` | `/categorias/<id>/editar/` | **`@login_required`** | Mismo formulario con `instance=categoria` |
+
+- La cantidad de productos se calcula en la base de datos con `annotate(total_productos=Count('productos'))`.
+- En el catálogo se usa `select_related('categoria')`, que trae cada producto junto a su categoría en
+  una sola consulta (JOIN) en vez de una consulta por tarjeta.
+- Se agregó el enlace **Categorías** a la barra de navegación y el modelo al panel `/admin/`.
+
+### Paso 5 – Django REST Framework
+
+```bash
+pip install djangorestframework
+pip freeze > requirements.txt
+```
+
+En `settings.py`:
+
+```python
+INSTALLED_APPS = [
+    ...
+    'rest_framework',             # Django REST Framework
+    'rest_framework.authtoken',   # autenticación por token
+    'catalogo',
+]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+```
+
+`python manage.py migrate` creó además la tabla `authtoken_token`, donde se guarda el token de cada usuario.
+
+### Paso 6 – Serializadores (`catalogo/serializers.py`)
+
+Un serializador convierte objetos del modelo a JSON (para responder) y valida el JSON recibido
+(para crear o editar). Es el equivalente del `ModelForm`, pero para la API.
+
+```python
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = ['id', 'nombre', 'descripcion']
+
+
+class ProductoSerializer(serializers.ModelSerializer):
+    categoria_detalle = CategoriaSerializer(source='categoria', read_only=True)
+
+    class Meta:
+        model = Producto
+        fields = ['id', 'nombre', 'categoria', 'categoria_detalle', 'precio', 'stock',
+                  'descripcion', 'estado', 'creado', 'actualizado']
+        read_only_fields = ['creado', 'actualizado']
+```
+
+- `categoria` es el **id** de la categoría: se usa al leer y al escribir.
+- `categoria_detalle` muestra los datos completos de la categoría (solo lectura), reutilizando `CategoriaSerializer`.
+- Las validaciones del modelo (precio y stock ≥ 0, categoría existente) se aplican también en la API.
+
+### Paso 7 – Vistas y rutas de la API (`catalogo/api_views.py`, `catalogo/api_urls.py`)
+
+```python
+class ProductoViewSet(viewsets.ModelViewSet):
+    queryset = Producto.objects.select_related('categoria')
+    serializer_class = ProductoSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+```
+
+Un `ModelViewSet` implementa las cinco operaciones (listar, detallar, crear, modificar y eliminar).
+El `DefaultRouter` genera las rutas:
+
+```python
+router = DefaultRouter()
+router.register('productos', api_views.ProductoViewSet, basename='producto')
+router.register('categorias', api_views.CategoriaViewSet, basename='categoria')
+
+urlpatterns = [
+    path('token/', obtain_auth_token, name='api-token'),
+    path('', include(router.urls)),
+]
+```
+
+| Método | URL | Acción | Acceso |
+|--------|-----|--------|--------|
+| GET | `/api/productos/` | Listar | Público |
+| GET | `/api/productos/<id>/` | Detalle | Público |
+| POST | `/api/productos/` | Crear | Token |
+| PUT | `/api/productos/<id>/` | Edición total | Token |
+| PATCH | `/api/productos/<id>/` | Edición parcial | Token |
+| DELETE | `/api/productos/<id>/` | Eliminar | Token |
+
+### Paso 8 – Autenticación por token
+
+1. El cliente envía usuario y contraseña a `POST /api/token/` (vista `obtain_auth_token` de DRF)
+   y recibe su token.
+2. En cada petición privada envía la cabecera `Authorization: Token <clave>`.
+3. `TokenAuthentication` busca esa clave en la tabla `authtoken_token` e identifica al usuario.
+4. El permiso `IsAuthenticatedOrReadOnly` deja pasar los métodos de lectura (GET) a cualquiera y exige
+   un usuario autenticado para POST, PUT, PATCH y DELETE. Sin token válido la respuesta es **401**.
+
+Los ejemplos de consumo con `curl`, PowerShell y Postman están en el [README](../README.md#api-rest).
+
+---
+
+## 5. Capturas de pantalla
 
 ### Catálogo como visitante (sin sesión)
 Barra de navegación con "Visitante" e "Iniciar sesión". No aparecen botones de edición.
@@ -303,9 +492,26 @@ Al enviarlo vacío, los campos obligatorios se marcan en rojo con el mensaje de 
 
 <img src="img/10-catalogo-movil.png" alt="Catálogo en celular" width="300">
 
+### Fase 2 – Listado de categorías
+Como visitante solo se puede consultar. Con sesión iniciada aparecen "Nueva categoría" y "Editar".
+
+![Categorías como visitante](img/11-categorias-anonimo.png)
+
+![Categorías con sesión iniciada](img/12-categorias-autenticado.png)
+
+### Fase 2 – Formulario de categoría (ModelForm)
+
+![Formulario de categoría](img/13-formulario-categoria.png)
+
+### Fase 2 – API REST
+`GET /api/productos/1/` en la interfaz navegable de Django REST Framework: respuesta en JSON con la
+categoría relacionada y los métodos permitidos.
+
+![Detalle de producto en la API](img/14-api-detalle-producto.png)
+
 ---
 
-## 5. Pruebas realizadas
+## 6. Pruebas realizadas
 
 ### Pruebas automatizadas (`catalogo/tests.py`)
 
@@ -313,18 +519,33 @@ Al enviarlo vacío, los campos obligatorios se marcan en rojo con el mensaje de 
 python manage.py test catalogo
 ```
 
-Resultado: **8 pruebas, todas correctas (OK)**.
+Resultado: **29 pruebas, todas correctas (OK)**. Django las ejecuta en una base de datos temporal
+(`test_techstore_db`), por lo que no modifican los datos reales.
 
-| Prueba | Qué verifica |
-|--------|--------------|
-| `test_stock_cero_queda_agotado` | Un producto con stock 0 se guarda como agotado |
-| `test_lista_publica` | El catálogo se ve sin iniciar sesión |
-| `test_detalle_publico` | El detalle se ve sin iniciar sesión |
-| `test_vistas_privadas_requieren_login` | Crear, editar y eliminar redirigen al login si no hay sesión |
-| `test_crear_producto` | Se crea un producto y redirige a su detalle |
-| `test_editar_producto` | Se modifica un producto existente |
-| `test_eliminar_producto` | Se muestra la confirmación y se elimina con POST |
-| `test_navbar_usuario_autenticado` | La barra muestra las opciones del usuario autenticado |
+| Grupo | Pruebas | Qué verifica |
+|-------|---------|--------------|
+| `ModelosTests` | 2 | Stock 0 deja el producto agotado; la relación funciona en ambos sentidos (`producto.categoria` y `categoria.productos`) |
+| `VistasProductoTests` | 9 | Catálogo y detalle públicos, filtro por categoría, redirección al login, el `<select>` muestra las categorías de la base, crear, editar, eliminar y navbar |
+| `VistasCategoriaTests` | 5 | Listado público, crear y editar exigen login, crear, editar y rechazo de nombres duplicados |
+| `ApiProductosTests` | 9 | GET público (lista y detalle); POST, PUT, PATCH y DELETE responden 401 sin token o con token inválido; con token responden 201, 200, 200 y 204; datos inválidos responden 400 |
+| `ApiTokenTests` | 2 | `/api/token/` entrega el token con credenciales correctas y lo niega con incorrectas |
+| `ApiCategoriasTests` | 2 | Listado público; no se elimina una categoría con productos (409) |
+
+### Pruebas de la API con `curl`
+
+Se ejecutaron contra el servidor en funcionamiento todos los ejemplos del README:
+
+| Petición | Resultado |
+|----------|-----------|
+| `GET /api/productos/` y `GET /api/productos/2/` sin token | 200 |
+| `POST /api/productos/` sin token | 401 – "Las credenciales de autenticación no se proveyeron." |
+| `POST /api/token/` con `admin` / `admin` | 200 – token de 40 caracteres |
+| `POST /api/token/` con contraseña incorrecta | 400 |
+| `POST /api/productos/` con token | 201 |
+| `PUT /api/productos/<id>/` con token | 200 |
+| `PATCH /api/productos/<id>/` con `{"stock": 0}` y token | 200 – el producto queda con `"estado": false` |
+| `DELETE /api/productos/<id>/` con token | 204 |
+| `DELETE /api/productos/1/` con token inválido | 401 – "Token inválido." |
 
 ### Pruebas manuales en el navegador
 
@@ -336,17 +557,30 @@ Resultado: **8 pruebas, todas correctas (OK)**.
 - [x] Los productos guardados se ven tanto en el catálogo como en `/admin/`.
 - [x] Cerrar sesión devuelve al catálogo como visitante.
 - [x] El diseño se adapta a la pantalla del celular.
+- [x] La página de categorías muestra las 5 categorías con su cantidad de productos.
+- [x] El desplegable de categoría del formulario de productos muestra las categorías de la base de datos.
+- [x] `/api/productos/1/` responde en JSON con la categoría relacionada.
 
 ---
 
-## 6. Decisiones de diseño
+## 7. Decisiones de diseño
 
 - **Vistas basadas en funciones** en lugar de clases: el flujo GET/POST queda explícito
   y se ve claramente dónde se aplica `@login_required`.
 - **La eliminación solo ocurre con POST:** un enlace (GET) nunca borra datos; siempre pasa por
   la página de confirmación y el formulario lleva token CSRF.
 - **`DecimalField` para el precio:** evita los errores de redondeo de `FloatField` en valores monetarios.
-- **`choices` en la categoría:** evita categorías mal escritas y permite filtrar por categoría.
-- **Una sola plantilla (`formulario.html`) para crear y editar:** la vista le pasa el título y el texto del botón.
+- **Categoría como `ForeignKey` (Fase 2):** las categorías dejan de ser una lista fija en el código y pasan a
+  ser datos administrables desde la web; se pueden agregar sin modificar el programa.
+- **`on_delete=PROTECT`:** borrar una categoría no puede eliminar ni dejar huérfanos a sus productos.
+- **`ModelViewSet` + `DefaultRouter` para la API:** cubren el ciclo completo (listar, detallar, crear,
+  modificar y eliminar) con poco código y rutas REST estándar.
+- **Solo `TokenAuthentication` en la API:** las operaciones de escritura exigen siempre el token en la
+  cabecera, como pide el encargo; la sesión del sitio web no sirve para escribir por la API.
+- **`IsAuthenticatedOrReadOnly`:** una sola regla expresa "leer es público, escribir requiere token".
+- **API dentro de la app `catalogo`:** en archivos separados (`serializers.py`, `api_views.py`,
+  `api_urls.py`) para no mezclarla con las vistas HTML.
+- **Una sola plantilla (`formulario.html`) para crear y editar:** sirve para productos y categorías;
+  la vista le pasa el título, el texto del botón y a dónde volver al cancelar.
 - **Íconos por categoría en vez de imágenes:** no depende de archivos externos ni de instalar Pillow.
 

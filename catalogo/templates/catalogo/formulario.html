@@ -50,7 +50,7 @@
                         <button type="submit" class="btn btn-dark">
                             <i class="bi bi-check-lg"></i> {{ boton }}
                         </button>
-                        <a href="{% if producto %}{{ producto.get_absolute_url }}{% else %}{% url 'catalogo:lista' %}{% endif %}"
+                        <a href="{{ cancelar_url }}"
                            class="btn btn-outline-secondary">Cancelar</a>
                     </div>
                 </form>

@@ -15,5 +15,7 @@ urlpatterns = [
         redirect_authenticated_user=True,
     ), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    # API REST (Django REST Framework)
+    path('api/', include('catalogo.api_urls')),
     path('', include('catalogo.urls')),
 ]

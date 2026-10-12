@@ -7,7 +7,7 @@
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{% url 'catalogo:lista' %}">Catálogo</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'catalogo:lista' %}?categoria={{ producto.categoria }}">{{ producto.get_categoria_display }}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalogo:lista' %}?categoria={{ producto.categoria.pk }}">{{ producto.categoria.nombre }}</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ producto.nombre }}</li>
     </ol>
 </nav>
@@ -21,14 +21,14 @@
         </div>
         <div class="col-md-8">
             <div class="card-body p-4">
-                <span class="badge text-bg-light border mb-2">{{ producto.get_categoria_display }}</span>
+                <span class="badge text-bg-light border mb-2">{{ producto.categoria.nombre }}</span>
                 <h1 class="h3">{{ producto.nombre }}</h1>
                 <p class="precio fs-3 mb-3">${{ producto.precio|clp }}</p>
 
                 <h2 class="h6 text-uppercase text-muted">Ficha técnica</h2>
                 <table class="table table-sm mb-4">
                     <tbody>
-                        <tr><th scope="row" class="w-25">Categoría</th><td>{{ producto.get_categoria_display }}</td></tr>
+                        <tr><th scope="row" class="w-25">Categoría</th><td>{{ producto.categoria.nombre }}</td></tr>
                         <tr><th scope="row">Precio</th><td>${{ producto.precio|clp }} CLP</td></tr>
                         <tr><th scope="row">Stock</th><td>{{ producto.stock }} unidad{{ producto.stock|pluralize:"es" }}</td></tr>
                         <tr>

@@ -1,10 +1,50 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import Producto
+from .models import Categoria, Producto
 
 
-class ProductoForm(forms.ModelForm):
+class MarcarErroresMixin:
+    """Agrega la clase Bootstrap is-invalid a los campos con errores."""
+
+    def _post_clean(self):
+        super()._post_clean()
+        for nombre_campo in self.errors:
+            if nombre_campo in self.fields:
+                widget = self.fields[nombre_campo].widget
+                widget.attrs['class'] = f"{widget.attrs.get('class', '')} is-invalid".strip()
+
+
+class CategoriaForm(MarcarErroresMixin, forms.ModelForm):
+    """Formulario de creación/edición de categorías."""
+
+    class Meta:
+        model = Categoria
+        fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Monitores',
+                'autofocus': True,
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Qué tipo de productos agrupa esta categoría (opcional)',
+            }),
+        }
+        error_messages = {
+            'nombre': {'unique': 'Ya existe una categoría con ese nombre.'},
+        }
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data['nombre'].strip()
+        if len(nombre) < 3:
+            raise forms.ValidationError('El nombre debe tener al menos 3 caracteres.')
+        return nombre
+
+
+class ProductoForm(MarcarErroresMixin, forms.ModelForm):
     """Formulario de creación/edición de productos con widgets personalizados."""
 
     class Meta:
@@ -44,19 +84,18 @@ class ProductoForm(forms.ModelForm):
             'stock': 'Si el stock es 0 el producto quedará como agotado.',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Como "categoria" es una ForeignKey, Django crea un ModelChoiceField:
+        # las opciones del <select> se consultan a la tabla de categorías en cada carga.
+        self.fields['categoria'].queryset = Categoria.objects.order_by('nombre')
+        self.fields['categoria'].empty_label = 'Selecciona una categoría'
+
     def clean_nombre(self):
         nombre = self.cleaned_data['nombre'].strip()
         if len(nombre) < 3:
             raise forms.ValidationError('El nombre debe tener al menos 3 caracteres.')
         return nombre
-
-    def _post_clean(self):
-        super()._post_clean()
-        # Marca en rojo (clase Bootstrap is-invalid) los campos con errores
-        for nombre_campo in self.errors:
-            if nombre_campo in self.fields:
-                widget = self.fields[nombre_campo].widget
-                widget.attrs['class'] = f"{widget.attrs.get('class', '')} is-invalid".strip()
 
 
 class LoginForm(AuthenticationForm):

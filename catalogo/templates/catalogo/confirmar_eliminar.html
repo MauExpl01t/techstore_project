@@ -14,7 +14,7 @@
                 <p>¿Seguro que deseas eliminar el siguiente producto? Esta acción no se puede deshacer.</p>
                 <ul class="list-group mb-4">
                     <li class="list-group-item"><strong>Nombre:</strong> {{ producto.nombre }}</li>
-                    <li class="list-group-item"><strong>Categoría:</strong> {{ producto.get_categoria_display }}</li>
+                    <li class="list-group-item"><strong>Categoría:</strong> {{ producto.categoria.nombre }}</li>
                     <li class="list-group-item"><strong>Precio:</strong> ${{ producto.precio|clp }}</li>
                     <li class="list-group-item"><strong>Stock:</strong> {{ producto.stock }}</li>
                 </ul>

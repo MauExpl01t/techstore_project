@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',             # Django REST Framework (API REST)
+    'rest_framework.authtoken',   # autenticación por token
     'catalogo',
 ]
 
@@ -137,3 +139,17 @@ STATIC_URL = 'static/'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'catalogo:lista'
 LOGOUT_REDIRECT_URL = 'catalogo:lista'
+
+
+# API REST (Django REST Framework)
+REST_FRAMEWORK = {
+    # Quién eres: se identifica al cliente por el token de la cabecera
+    #   Authorization: Token <clave>
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    # Qué puedes hacer: leer (GET) es público; escribir (POST, PUT, PATCH, DELETE) exige token
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
