@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -44,7 +44,8 @@ def detalle_producto(request, pk):
 @login_required
 def crear_producto(request):
     if request.method == 'POST':
-        form = ProductoForm(request.POST)
+        # request.FILES trae los archivos subidos (la foto del producto)
+        form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
             producto = form.save()
             messages.success(request, f'Producto "{producto.nombre}" creado correctamente.')
@@ -65,7 +66,7 @@ def editar_producto(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
 
     if request.method == 'POST':
-        form = ProductoForm(request.POST, instance=producto)
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
             form.save()
             messages.success(request, f'Producto "{producto.nombre}" actualizado correctamente.')
@@ -140,3 +141,24 @@ def editar_categoria(request, pk):
         'boton': 'Guardar cambios',
         'cancelar_url': reverse('catalogo:categorias'),
     })
+
+
+@login_required
+def eliminar_categoria(request, pk):
+    categoria = get_object_or_404(Categoria.objects.annotate(total_productos=Count('productos')), pk=pk)
+
+    if request.method == 'POST':
+        try:
+            categoria.delete()
+        except ProtectedError:
+            # on_delete=PROTECT: la base de datos no deja borrar una categoría con productos
+            messages.error(
+                request,
+                f'No se puede eliminar "{categoria.nombre}" porque tiene productos asociados. '
+                'Primero cambia esos productos de categoría o elimínalos.',
+            )
+        else:
+            messages.success(request, f'Categoría "{categoria.nombre}" eliminada.')
+        return redirect('catalogo:categorias')
+
+    return render(request, 'catalogo/confirmar_eliminar_categoria.html', {'categoria': categoria})

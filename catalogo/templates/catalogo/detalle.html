@@ -16,7 +16,11 @@
     <div class="row g-0">
         <div class="col-md-4 d-flex">
             <div class="card-icono card-icono-grande flex-fill rounded-start">
-                <i class="bi {{ producto.icono }}"></i>
+                {% if producto.imagen %}
+                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="card-foto">
+                {% else %}
+                    <i class="bi {{ producto.icono }}"></i>
+                {% endif %}
             </div>
         </div>
         <div class="col-md-8">

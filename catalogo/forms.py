@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.files.uploadedfile import UploadedFile
 
 from .models import Categoria, Producto
 
@@ -49,12 +50,16 @@ class ProductoForm(MarcarErroresMixin, forms.ModelForm):
 
     class Meta:
         model = Producto
-        fields = ['nombre', 'categoria', 'precio', 'stock', 'descripcion', 'estado']
+        fields = ['nombre', 'categoria', 'precio', 'stock', 'descripcion', 'imagen', 'estado']
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ej: PlayStation 5 Slim 1TB',
                 'autofocus': True,
+            }),
+            'imagen': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
             }),
             'categoria': forms.Select(attrs={
                 'class': 'form-select',
@@ -82,7 +87,10 @@ class ProductoForm(MarcarErroresMixin, forms.ModelForm):
         help_texts = {
             'precio': 'Valor en pesos chilenos, sin puntos ni decimales.',
             'stock': 'Si el stock es 0 el producto quedará como agotado.',
+            'imagen': 'Opcional. Foto del producto en JPG o PNG, de hasta 2 MB.',
         }
+
+    TAMANO_MAXIMO_IMAGEN = 2 * 1024 * 1024  # 2 MB
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -96,6 +104,13 @@ class ProductoForm(MarcarErroresMixin, forms.ModelForm):
         if len(nombre) < 3:
             raise forms.ValidationError('El nombre debe tener al menos 3 caracteres.')
         return nombre
+
+    def clean_imagen(self):
+        imagen = self.cleaned_data.get('imagen')
+        # Solo se revisa el tamaño cuando se sube un archivo nuevo
+        if isinstance(imagen, UploadedFile) and imagen.size > self.TAMANO_MAXIMO_IMAGEN:
+            raise forms.ValidationError('La imagen no puede pesar más de 2 MB.')
+        return imagen
 
 
 class LoginForm(AuthenticationForm):

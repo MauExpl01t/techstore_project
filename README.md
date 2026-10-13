@@ -5,7 +5,8 @@ Sistema web interno de administración del catálogo de productos electrónicos 
 
 **Fase 2:** los productos se clasifican mediante una relación (`ForeignKey`) con el modelo `Categoria`,
 las categorías se administran desde la interfaz web y el sistema expone una **API REST** con
-Django REST Framework, protegida con **autenticación por token**.
+Django REST Framework, protegida con **autenticación por token**. Cada producto puede llevar además
+una **foto**, que se sube desde el formulario y se muestra en las tarjetas del catálogo.
 
 - Proyecto: `techstore_project`
 - App principal: `catalogo`
@@ -63,7 +64,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Instala Django, Django REST Framework, el conector de MySQL (`mysqlclient`) y `python-dotenv`.
+Instala Django, Django REST Framework, el conector de MySQL (`mysqlclient`), `python-dotenv`
+y Pillow (manejo de imágenes).
 
 ### 4. Crear la base de datos en MySQL
 
@@ -103,7 +105,8 @@ python manage.py loaddata productos
 python manage.py createsuperuser
 ```
 
-`loaddata` carga 5 categorías y 11 productos. Al crear el superusuario usar `admin` como nombre de
+`loaddata` carga 5 categorías y 11 productos con su foto (las imágenes ya vienen en `media/productos/`).
+Al crear el superusuario usar `admin` como nombre de
 usuario y `admin` como contraseña (si Django advierte que la contraseña es poco segura, responder `y`).
 
 ### 8. Ejecutar el servidor
@@ -121,7 +124,8 @@ python manage.py runserver
 python manage.py test catalogo
 ```
 
-Son 29 pruebas: modelos y relación, vistas web de productos y categorías, endpoints de la API y token.
+Son 35 pruebas: modelos y relación, vistas web de productos y categorías, fotos de productos,
+endpoints de la API y token.
 
 ---
 
@@ -182,6 +186,7 @@ Respuesta:
   "precio": "379990",
   "stock": 8,
   "descripcion": "Consola híbrida Nintendo Switch modelo OLED...",
+  "imagen": "http://127.0.0.1:8000/media/productos/nintendo-switch-oled.jpg",
   "estado": true,
   "creado": "2026-10-04T09:00:00-03:00",
   "actualizado": "2026-10-04T09:00:00-03:00"
@@ -189,7 +194,8 @@ Respuesta:
 ```
 
 `categoria` es el id de la categoría (es el campo que se envía al crear o editar);
-`categoria_detalle` muestra sus datos y es de solo lectura. `estado`: `true` = disponible, `false` = agotado.
+`categoria_detalle` muestra sus datos y es de solo lectura. `imagen` es la dirección de la foto, también de
+solo lectura (la foto se sube desde el formulario web). `estado`: `true` = disponible, `false` = agotado.
 
 **3. Intentar crear sin token (rechazado)**
 
@@ -294,6 +300,13 @@ Invoke-RestMethod -Method Delete -Uri "http://127.0.0.1:8000/api/productos/$($pr
 
 ### Con Postman u otro cliente HTTP
 
+El repositorio incluye una colección lista para usar:
+[`docs/TechStore_API.postman_collection.json`](docs/TechStore_API.postman_collection.json).
+En Postman: **Import** → seleccionar el archivo. Al ejecutar **"1. Obtener token"**, el token se guarda solo
+en la variable `{{token}}` y las demás peticiones lo envían en la cabecera.
+
+Para hacerlo a mano:
+
 1. `POST http://127.0.0.1:8000/api/token/` con Body → *form-data*: `username = admin`, `password = admin`. Copiar el valor de `token`.
 2. En las peticiones privadas, pestaña **Headers**: clave `Authorization`, valor `Token <clave_del_token>`
    (la palabra `Token`, un espacio y la clave).
@@ -325,6 +338,7 @@ Invoke-RestMethod -Method Delete -Uri "http://127.0.0.1:8000/api/productos/$($pr
 | `/categorias/` | Listado de categorías | Público |
 | `/categorias/nueva/` | Crear categoría | Privado (`@login_required`) |
 | `/categorias/<id>/editar/` | Modificar categoría | Privado (`@login_required`) |
+| `/categorias/<id>/eliminar/` | Confirmar eliminación de categoría | Privado (`@login_required`) |
 | `/login/` · `/logout/` | Login / Logout (`django.contrib.auth`) | — |
 | `/admin/` | Panel administrativo de Django | Staff |
 
@@ -345,7 +359,11 @@ techstore_project/   (raíz del repositorio)
 │   └── crear_base_datos.sql    # Crea la base de datos y el usuario
 ├── docs/
 │   ├── DOCUMENTACION.md        # Documentación del desarrollo
+│   ├── CREDITOS_IMAGENES.md    # Autor y licencia de cada foto de producto
+│   ├── TechStore_API.postman_collection.json   # Colección de Postman para probar la API
 │   └── img/                    # Capturas de pantalla
+├── media/
+│   └── productos/              # Fotos de los productos (las subidas desde el formulario quedan aquí)
 ├── techstore_project/          # Configuración del proyecto
 │   ├── settings.py             # Apps, base de datos, REST_FRAMEWORK
 │   └── urls.py                 # admin, login, logout, api/ e include de catalogo
@@ -358,10 +376,11 @@ techstore_project/   (raíz del repositorio)
     ├── api_views.py            # ProductoViewSet y CategoriaViewSet (API)
     ├── api_urls.py             # Rutas de la API y endpoint del token
     ├── admin.py                # Registro en el panel administrativo
-    ├── tests.py                # 29 pruebas automatizadas
+    ├── tests.py                # 35 pruebas automatizadas
     ├── migrations/
     │   ├── 0001_initial.py
-    │   └── 0002_categoria_y_relacion.py   # Crea Categoria y convierte el texto en ForeignKey
+    │   ├── 0002_categoria_y_relacion.py   # Crea Categoria y convierte el texto en ForeignKey
+    │   └── 0003_producto_imagen.py        # Agrega la foto del producto
     ├── fixtures/productos.json # Categorías y productos de ejemplo
     ├── templatetags/formato.py # Filtro |clp para precios ($549.990)
     ├── static/catalogo/css/estilos.css
@@ -373,7 +392,8 @@ techstore_project/   (raíz del repositorio)
             ├── detalle.html
             ├── categorias.html         # Listado de categorías
             ├── formulario.html         # Crear y editar (productos y categorías)
-            └── confirmar_eliminar.html
+            ├── confirmar_eliminar.html
+            └── confirmar_eliminar_categoria.html
 ```
 
 ---
@@ -392,11 +412,15 @@ techstore_project/   (raíz del repositorio)
 
 ### 2. Vistas y formularios web (25 pts) – `catalogo/views.py`, `catalogo/forms.py`
 
-- **Gestión de categorías**: `lista_categorias` (pública), `crear_categoria` y `editar_categoria`,
-  con el `ModelForm` `CategoriaForm` y la plantilla `categorias.html`.
+- **Gestión de categorías**: `lista_categorias` (pública), `crear_categoria`, `editar_categoria` y
+  `eliminar_categoria`, con el `ModelForm` `CategoriaForm` y la plantilla `categorias.html`.
+  Una categoría con productos no se puede eliminar: el sistema lo impide y muestra un aviso.
 - **Formulario de productos**: en `ProductoForm` el campo `categoria` es un `Select` cuyas opciones se
   consultan a la tabla de categorías en cada carga; una categoría nueva aparece en el desplegable de inmediato.
-- **Seguridad**: `@login_required` en crear y editar categorías, y en crear, editar y eliminar productos.
+- **Seguridad**: `@login_required` en crear, editar y eliminar, tanto de categorías como de productos.
+- **Foto del producto** (adicional a lo pedido): campo `imagen` (`ImageField`) con widget `ClearableFileInput`;
+  el catálogo muestra la foto en cada tarjeta y, si un producto no tiene, el ícono de su categoría.
+  Créditos de las fotos de ejemplo en [docs/CREDITOS_IMAGENES.md](docs/CREDITOS_IMAGENES.md).
 
 ### 3. API REST (30 pts) – `catalogo/serializers.py`, `catalogo/api_views.py`, `catalogo/api_urls.py`
 
@@ -422,4 +446,5 @@ techstore_project/   (raíz del repositorio)
 
 - Python 3 / Django 5.2 LTS / Django REST Framework 3.18 (ver `requirements.txt`)
 - MySQL 8.0 (conector `mysqlclient`)
+- Pillow (fotos de productos)
 - Bootstrap 5 y Bootstrap Icons (CDN)

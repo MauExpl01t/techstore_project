@@ -48,6 +48,7 @@ El proyecto se desarrolló en dos fases:
 | MySQL 8.0 | Motor de base de datos |
 | mysqlclient | Conector que permite a Django comunicarse con MySQL |
 | python-dotenv | Lee las credenciales de MySQL desde el archivo `.env` |
+| Pillow | Librería de imágenes que usa `ImageField` para validar las fotos de los productos (Fase 2) |
 | MySQL Workbench | Interfaz gráfica para administrar y revisar la base de datos |
 | Bootstrap 5 + Bootstrap Icons | Diseño de la interfaz (cargados por CDN) |
 | Git | Control de versiones |
@@ -338,6 +339,10 @@ Si se crea una categoría nueva, aparece de inmediato en el desplegable del form
 | `lista_categorias` | `/categorias/` | Pública | Tabla de categorías con la cantidad de productos de cada una |
 | `crear_categoria` | `/categorias/nueva/` | **`@login_required`** | Formulario `CategoriaForm` |
 | `editar_categoria` | `/categorias/<id>/editar/` | **`@login_required`** | Mismo formulario con `instance=categoria` |
+| `eliminar_categoria` | `/categorias/<id>/eliminar/` | **`@login_required`** | GET muestra la confirmación; POST elimina |
+
+Si la categoría tiene productos, `on_delete=PROTECT` hace que la base de datos rechace el borrado
+(`ProtectedError`); la vista captura ese error y muestra un aviso en vez de fallar.
 
 - La cantidad de productos se calcula en la base de datos con `annotate(total_productos=Count('productos'))`.
 - En el catálogo se usa `select_related('categoria')`, que trae cada producto junto a su categoría en
@@ -442,6 +447,36 @@ urlpatterns = [
    un usuario autenticado para POST, PUT, PATCH y DELETE. Sin token válido la respuesta es **401**.
 
 Los ejemplos de consumo con `curl`, PowerShell y Postman están en el [README](../README.md#api-rest).
+También se incluye una colección de Postman en `docs/TechStore_API.postman_collection.json`.
+
+### Paso 9 – Foto de cada producto (adicional)
+
+```bash
+pip install pillow
+```
+
+```python
+# models.py
+imagen = models.ImageField('imagen', upload_to='productos/', blank=True)
+
+# settings.py
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# techstore_project/urls.py  (solo en desarrollo, con DEBUG=True)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+- `ImageField` guarda el **archivo** en `media/productos/` y en la base de datos solo su **ruta**.
+  Pillow comprueba que el archivo subido sea realmente una imagen.
+- Migración `0003_producto_imagen.py` (generada con `makemigrations`).
+- En `ProductoForm` se agregó el campo con el widget `ClearableFileInput`, un límite de 2 MB
+  (`clean_imagen`) y, en la plantilla, `enctype="multipart/form-data"`; las vistas reciben el archivo
+  con `request.FILES`.
+- Las tarjetas y el detalle muestran la foto; si el producto no tiene, aparece el ícono de su categoría.
+- En la API, `imagen` entrega la dirección de la foto y es de solo lectura.
+- Las 11 fotos de ejemplo provienen de Wikimedia Commons con licencias libres; el detalle de autores
+  está en [CREDITOS_IMAGENES.md](CREDITOS_IMAGENES.md).
 
 ---
 
@@ -462,10 +497,14 @@ Al intentar entrar a `/producto/nuevo/` sin sesión, el sistema redirige al logi
 ![Redirección al login](img/03-login-redireccion.png)
 
 ### Catálogo con sesión iniciada
-La barra cambia: aparecen "Nuevo producto", "Panel admin", el saludo y "Cerrar sesión".
-Cada tarjeta muestra los botones Editar y Eliminar.
+La barra cambia: aparecen "Categorías", "Nuevo producto", "Panel admin", el saludo y "Cerrar sesión".
+Cada tarjeta muestra la foto del producto y los botones Editar y Eliminar.
 
 ![Catálogo autenticado](img/04-catalogo-autenticado.png)
+
+Catálogo completo con los 11 productos y sus fotos:
+
+![Catálogo completo](img/16-catalogo-completo.png)
 
 ### Formulario de creación (ModelForm con widgets)
 
@@ -503,6 +542,11 @@ Como visitante solo se puede consultar. Con sesión iniciada aparecen "Nueva cat
 
 ![Formulario de categoría](img/13-formulario-categoria.png)
 
+### Fase 2 – Confirmación de eliminación de categoría
+Avisa que una categoría con productos no se podrá eliminar.
+
+![Confirmar eliminación de categoría](img/15-confirmar-eliminar-categoria.png)
+
 ### Fase 2 – API REST
 `GET /api/productos/1/` en la interfaz navegable de Django REST Framework: respuesta en JSON con la
 categoría relacionada y los métodos permitidos.
@@ -519,14 +563,15 @@ categoría relacionada y los métodos permitidos.
 python manage.py test catalogo
 ```
 
-Resultado: **29 pruebas, todas correctas (OK)**. Django las ejecuta en una base de datos temporal
+Resultado: **35 pruebas, todas correctas (OK)**. Django las ejecuta en una base de datos temporal
 (`test_techstore_db`), por lo que no modifican los datos reales.
 
 | Grupo | Pruebas | Qué verifica |
 |-------|---------|--------------|
 | `ModelosTests` | 2 | Stock 0 deja el producto agotado; la relación funciona en ambos sentidos (`producto.categoria` y `categoria.productos`) |
 | `VistasProductoTests` | 9 | Catálogo y detalle públicos, filtro por categoría, redirección al login, el `<select>` muestra las categorías de la base, crear, editar, eliminar y navbar |
-| `VistasCategoriaTests` | 5 | Listado público, crear y editar exigen login, crear, editar y rechazo de nombres duplicados |
+| `ImagenProductoTests` | 4 | Subir una foto y verla en la tarjeta, ícono cuando no hay foto, rechazo de archivos que no son imagen, y la API entrega la dirección de la foto |
+| `VistasCategoriaTests` | 7 | Listado público; crear, editar y eliminar exigen login; crear, editar, eliminar, protección de categorías con productos y rechazo de nombres duplicados |
 | `ApiProductosTests` | 9 | GET público (lista y detalle); POST, PUT, PATCH y DELETE responden 401 sin token o con token inválido; con token responden 201, 200, 200 y 204; datos inválidos responden 400 |
 | `ApiTokenTests` | 2 | `/api/token/` entrega el token con credenciales correctas y lo niega con incorrectas |
 | `ApiCategoriasTests` | 2 | Listado público; no se elimina una categoría con productos (409) |
@@ -582,5 +627,8 @@ Se ejecutaron contra el servidor en funcionamiento todos los ejemplos del README
   `api_urls.py`) para no mezclarla con las vistas HTML.
 - **Una sola plantilla (`formulario.html`) para crear y editar:** sirve para productos y categorías;
   la vista le pasa el título, el texto del botón y a dónde volver al cancelar.
-- **Íconos por categoría en vez de imágenes:** no depende de archivos externos ni de instalar Pillow.
+- **Foto opcional con ícono de respaldo:** el campo `imagen` no es obligatorio; un producto sin foto
+  muestra el ícono de su categoría, así el catálogo nunca queda con un espacio vacío.
+- **La foto se sube solo por la web, no por la API:** la API trabaja con JSON; `imagen` es de solo lectura
+  para que crear y editar productos por la API siga siendo un JSON simple.
 

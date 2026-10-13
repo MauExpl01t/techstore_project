@@ -16,15 +16,18 @@ class ProductoSerializer(serializers.ModelSerializer):
 
     - "categoria": id de la categoría (se usa para leer y para escribir).
     - "categoria_detalle": datos completos de la categoría (solo lectura).
+    - "imagen": dirección (URL) de la foto del producto (solo lectura; la foto
+      se sube desde el formulario web).
     """
 
     categoria_detalle = CategoriaSerializer(source='categoria', read_only=True)
+    imagen = serializers.ImageField(read_only=True)
 
     class Meta:
         model = Producto
         fields = [
             'id', 'nombre', 'categoria', 'categoria_detalle', 'precio', 'stock',
-            'descripcion', 'estado', 'creado', 'actualizado',
+            'descripcion', 'imagen', 'estado', 'creado', 'actualizado',
         ]
         read_only_fields = ['creado', 'actualizado']
 

@@ -135,6 +135,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Archivos subidos por los usuarios (fotos de los productos)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Autenticación (django.contrib.auth)
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'catalogo:lista'

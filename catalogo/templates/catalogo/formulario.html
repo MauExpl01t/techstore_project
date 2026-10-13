@@ -10,7 +10,8 @@
                 <h1 class="h4 mb-0"><i class="bi bi-box-seam"></i> {{ titulo }}</h1>
             </div>
             <div class="card-body p-4">
-                <form method="post" novalidate>
+                {# enctype multipart es necesario para enviar archivos (la foto del producto) #}
+                <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}

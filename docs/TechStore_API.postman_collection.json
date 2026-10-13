@@ -1,0 +1,137 @@
+{
+  "info": {
+    "name": "TechStore INACAP - API REST",
+    "description": "Colección para probar la API REST de TechStore INACAP.\n\n1. Ejecutar primero \"1. Obtener token\": guarda el token en la variable {{token}}.\n2. Las peticiones privadas (POST, PUT, PATCH, DELETE) envían la cabecera Authorization: Token {{token}}.\n3. \"5. Crear producto\" guarda el id creado en {{producto_id}} para las peticiones siguientes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "token", "value": "" },
+    { "key": "producto_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "1. Obtener token (POST /api/token/)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 200 con el token', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.collectionVariables.set('token', pm.response.json().token);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "username", "value": "admin" },
+            { "key": "password", "value": "admin" }
+          ]
+        },
+        "url": "{{base_url}}/api/token/"
+      }
+    },
+    {
+      "name": "2. Listar productos - público (GET /api/productos/)",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/productos/" }
+    },
+    {
+      "name": "3. Detalle de producto - público (GET /api/productos/<id>/)",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/productos/2/" }
+    },
+    {
+      "name": "4. Crear SIN token - debe responder 401",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('Sin token responde 401', function () { pm.response.to.have.status(401); });"]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"nombre\": \"Producto sin permiso\"}" },
+        "url": "{{base_url}}/api/productos/"
+      }
+    },
+    {
+      "name": "5. Crear producto (POST /api/productos/)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Responde 201 y guarda el id', function () {",
+              "    pm.response.to.have.status(201);",
+              "    pm.collectionVariables.set('producto_id', pm.response.json().id);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Token {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Monitor LG UltraGear 27\",\n  \"categoria\": 5,\n  \"precio\": 249990,\n  \"stock\": 6,\n  \"descripcion\": \"Monitor gamer QHD 165 Hz\",\n  \"estado\": true\n}"
+        },
+        "url": "{{base_url}}/api/productos/"
+      }
+    },
+    {
+      "name": "6. Edición total (PUT /api/productos/<id>/)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Token {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Monitor LG UltraGear 27 QHD\",\n  \"categoria\": 5,\n  \"precio\": 239990,\n  \"stock\": 4,\n  \"descripcion\": \"Monitor gamer QHD 165 Hz, panel IPS\",\n  \"estado\": true\n}"
+        },
+        "url": "{{base_url}}/api/productos/{{producto_id}}/"
+      }
+    },
+    {
+      "name": "7. Edición parcial (PATCH /api/productos/<id>/)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Token {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"stock\": 0\n}" },
+        "url": "{{base_url}}/api/productos/{{producto_id}}/"
+      }
+    },
+    {
+      "name": "8. Eliminar producto (DELETE /api/productos/<id>/)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Token {{token}}" }],
+        "url": "{{base_url}}/api/productos/{{producto_id}}/"
+      }
+    },
+    {
+      "name": "9. Listar categorías - público (GET /api/categorias/)",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/categorias/" }
+    }
+  ]
+}

@@ -38,7 +38,12 @@
         <div class="col">
             <div class="card h-100 card-producto shadow-sm">
                 <div class="card-icono">
-                    <i class="bi {{ producto.icono }}"></i>
+                    {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="card-foto" loading="lazy">
+                    {% else %}
+                        {# Sin foto: se muestra el ícono de la categoría #}
+                        <i class="bi {{ producto.icono }}"></i>
+                    {% endif %}
                 </div>
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2 gap-2">

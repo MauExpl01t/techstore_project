@@ -1,5 +1,11 @@
+import io
+import shutil
+import tempfile
+
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
+from PIL import Image
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -105,6 +111,65 @@ class VistasProductoTests(TestCase):
         self.assertContains(respuesta, 'Nuevo producto')
 
 
+def foto_de_prueba(nombre='foto.png'):
+    """Genera en memoria una imagen PNG pequeña y válida."""
+    archivo = io.BytesIO()
+    Image.new('RGB', (40, 30), 'gray').save(archivo, 'PNG')
+    return SimpleUploadedFile(nombre, archivo.getvalue(), content_type='image/png')
+
+
+class ImagenProductoTests(TestCase):
+    """Las fotos de prueba se guardan en una carpeta temporal, no en media/."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.carpeta = tempfile.mkdtemp()
+        cls.ajustes = override_settings(MEDIA_ROOT=cls.carpeta)
+        cls.ajustes.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.ajustes.disable()
+        shutil.rmtree(cls.carpeta, ignore_errors=True)
+        super().tearDownClass()
+
+    def setUp(self):
+        self.usuario = User.objects.create_user('tester', password='clave-segura-123')
+        self.consolas = Categoria.objects.create(nombre='Consolas')
+        self.datos = {
+            'nombre': 'PlayStation 5', 'categoria': self.consolas.pk,
+            'precio': 549990, 'stock': 10, 'descripcion': 'Consola Sony', 'estado': 'True',
+        }
+        self.client.force_login(self.usuario)
+
+    def test_crear_producto_con_imagen(self):
+        self.datos['imagen'] = foto_de_prueba()
+        self.client.post(reverse('catalogo:crear'), self.datos)
+        producto = Producto.objects.get(nombre='PlayStation 5')
+        self.assertTrue(producto.imagen.name.startswith('productos/'))
+        # La tarjeta del catálogo muestra la foto
+        respuesta = self.client.get(reverse('catalogo:lista'))
+        self.assertContains(respuesta, producto.imagen.url)
+
+    def test_producto_sin_imagen_muestra_icono(self):
+        self.client.post(reverse('catalogo:crear'), self.datos)
+        respuesta = self.client.get(reverse('catalogo:lista'))
+        self.assertContains(respuesta, 'bi-controller')
+
+    def test_archivo_que_no_es_imagen_es_rechazado(self):
+        self.datos['imagen'] = SimpleUploadedFile('nota.txt', b'esto no es una imagen', content_type='text/plain')
+        self.client.post(reverse('catalogo:crear'), self.datos)
+        self.assertFalse(Producto.objects.exists())
+
+    def test_api_entrega_la_url_de_la_imagen(self):
+        self.datos['imagen'] = foto_de_prueba()
+        self.client.post(reverse('catalogo:crear'), self.datos)
+        producto = Producto.objects.get()
+        respuesta = self.client.get(f'/api/productos/{producto.pk}/')
+        self.assertTrue(respuesta.json()['imagen'].endswith(producto.imagen.url))
+
+
 class VistasCategoriaTests(TestCase):
     def setUp(self):
         self.usuario = User.objects.create_user('tester', password='clave-segura-123')
@@ -115,10 +180,11 @@ class VistasCategoriaTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         self.assertContains(respuesta, 'Consolas')
 
-    def test_crear_y_editar_requieren_login(self):
+    def test_vistas_privadas_requieren_login(self):
         urls = [
             reverse('catalogo:crear_categoria'),
             reverse('catalogo:editar_categoria', args=[self.categoria.pk]),
+            reverse('catalogo:eliminar_categoria', args=[self.categoria.pk]),
         ]
         for url in urls:
             respuesta = self.client.get(url)
@@ -138,6 +204,25 @@ class VistasCategoriaTests(TestCase):
         )
         self.categoria.refresh_from_db()
         self.assertEqual(self.categoria.nombre, 'Consolas y juegos')
+
+    def test_eliminar_categoria_sin_productos(self):
+        self.client.force_login(self.usuario)
+        respuesta = self.client.get(reverse('catalogo:eliminar_categoria', args=[self.categoria.pk]))
+        self.assertContains(respuesta, 'Confirmar eliminación')
+        self.client.post(reverse('catalogo:eliminar_categoria', args=[self.categoria.pk]))
+        self.assertFalse(Categoria.objects.filter(pk=self.categoria.pk).exists())
+
+    def test_no_se_elimina_categoria_con_productos(self):
+        self.client.force_login(self.usuario)
+        Producto.objects.create(
+            nombre='PlayStation 5', categoria=self.categoria,
+            precio=549990, stock=10, descripcion='Consola Sony',
+        )
+        respuesta = self.client.post(
+            reverse('catalogo:eliminar_categoria', args=[self.categoria.pk]), follow=True,
+        )
+        self.assertContains(respuesta, 'porque tiene productos asociados')
+        self.assertTrue(Categoria.objects.filter(pk=self.categoria.pk).exists())
 
     def test_nombre_duplicado_no_se_guarda(self):
         self.client.force_login(self.usuario)

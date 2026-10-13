@@ -57,6 +57,9 @@ class Producto(models.Model):
         validators=[MinValueValidator(0)],
     )
     descripcion = models.TextField('descripción técnica')
+    # Foto del producto (opcional). El archivo se guarda en media/productos/
+    # y en la base de datos solo queda su ruta.
+    imagen = models.ImageField('imagen', upload_to='productos/', blank=True)
     estado = models.BooleanField('estado', choices=ESTADO_CHOICES, default=True)
     creado = models.DateTimeField('creado', auto_now_add=True)
     actualizado = models.DateTimeField('actualizado', auto_now=True)
