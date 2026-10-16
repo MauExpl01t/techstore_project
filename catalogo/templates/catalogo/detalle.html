@@ -14,18 +14,24 @@
 
 <div class="card shadow-sm">
     <div class="row g-0">
-        <div class="col-md-4 d-flex">
-            <div class="card-icono card-icono-grande flex-fill rounded-start">
-                {% if producto.imagen %}
-                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="card-foto">
-                {% else %}
+        <div class="col-md-5 p-3 p-lg-4">
+            {% if producto.imagen %}
+                {# Al hacer clic se abre la foto en grande (ventana modal de Bootstrap) #}
+                <button type="button" class="producto-media producto-media-grande{% if not producto.estado %} agotado{% endif %}"
+                        data-bs-toggle="modal" data-bs-target="#modalFoto" aria-label="Ampliar la foto de {{ producto.nombre }}">
+                    <span class="producto-media-fondo" style="background-image: url('{{ producto.imagen.url }}')"></span>
+                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="producto-media-img">
+                    <span class="producto-ampliar"><i class="bi bi-arrows-fullscreen"></i> Ampliar</span>
+                </button>
+            {% else %}
+                <div class="producto-media producto-media-grande{% if not producto.estado %} agotado{% endif %}">
                     <i class="bi {{ producto.icono }}"></i>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
-        <div class="col-md-8">
+        <div class="col-md-7">
             <div class="card-body p-4">
-                <span class="badge text-bg-light border mb-2">{{ producto.categoria.nombre }}</span>
+                <span class="categoria-tag">{{ producto.categoria.nombre }}</span>
                 <h1 class="h3">{{ producto.nombre }}</h1>
                 <p class="precio fs-3 mb-3">${{ producto.precio|clp }}</p>
 
@@ -69,4 +75,21 @@
         </div>
     </div>
 </div>
+
+{% if producto.imagen %}
+{# Ventana para ver la foto en grande #}
+<div class="modal fade" id="modalFoto" tabindex="-1" aria-labelledby="modalFotoTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h6" id="modalFotoTitulo">{{ producto.nombre }}</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-0 bg-white text-center">
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

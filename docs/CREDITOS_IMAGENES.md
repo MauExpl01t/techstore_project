@@ -1,7 +1,10 @@
 # Créditos de las imágenes de productos
 
 Las fotos de `media/productos/` provienen de [Wikimedia Commons](https://commons.wikimedia.org/) y se usan
-bajo las licencias libres que indica cada autor. Se redujeron de tamaño (máximo 800 px) para el catálogo.
+bajo las licencias libres que indica cada autor.
+
+**Modificaciones:** para el catálogo cada foto se llevó al formato 4:3 (1000 × 750 px): se extendió su
+color de fondo, se recortó o se completó con la misma foto difuminada, según el caso.
 
 Algunas son **referenciales**: muestran el mismo tipo de equipo o la misma línea de producto, pero no
 necesariamente el modelo exacto que se describe en el catálogo.

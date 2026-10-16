@@ -37,23 +37,24 @@
     {% for producto in productos %}
         <div class="col">
             <div class="card h-100 card-producto shadow-sm">
-                <div class="card-icono">
+                <a href="{{ producto.get_absolute_url }}" class="producto-media{% if not producto.estado %} agotado{% endif %}"
+                   aria-label="Ver detalle de {{ producto.nombre }}">
                     {% if producto.imagen %}
-                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="card-foto" loading="lazy">
+                        {# Fondo difuminado hecho con la misma foto + la foto completa encima #}
+                        <span class="producto-media-fondo" style="background-image: url('{{ producto.imagen.url }}')"></span>
+                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="producto-media-img" loading="lazy">
                     {% else %}
                         {# Sin foto: se muestra el ícono de la categoría #}
                         <i class="bi {{ producto.icono }}"></i>
                     {% endif %}
-                </div>
+                    {% if producto.estado %}
+                        <span class="badge producto-estado bg-success-subtle text-success-emphasis border border-success-subtle">Disponible</span>
+                    {% else %}
+                        <span class="badge producto-estado bg-danger-subtle text-danger-emphasis border border-danger-subtle">Agotado</span>
+                    {% endif %}
+                </a>
                 <div class="card-body d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
-                        <span class="badge text-bg-light border">{{ producto.categoria.nombre }}</span>
-                        {% if producto.estado %}
-                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Disponible</span>
-                        {% else %}
-                            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Agotado</span>
-                        {% endif %}
-                    </div>
+                    <span class="categoria-tag mb-1">{{ producto.categoria.nombre }}</span>
                     <h2 class="h6 card-title">{{ producto.nombre }}</h2>
                     <p class="card-text small text-muted flex-grow-1">{{ producto.descripcion|truncatechars:90 }}</p>
                     <p class="precio mb-1">${{ producto.precio|clp }}</p>
