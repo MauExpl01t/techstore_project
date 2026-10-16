@@ -305,6 +305,11 @@ El repositorio incluye una colección lista para usar:
 En Postman: **Import** → seleccionar el archivo. Al ejecutar **"1. Obtener token"**, el token se guarda solo
 en la variable `{{token}}` y las demás peticiones lo envían en la cabecera.
 
+También funciona en **Thunder Client** (extensión de VS Code): ícono del rayo ⚡ → **Collections** → menú ☰ →
+**Import** → seleccionar el mismo archivo. En Thunder Client el token no se guarda solo: copiar el valor que
+devuelve "1. Obtener token" y crear una variable `token` en **Env** (o pegarlo directamente en la cabecera
+`Authorization`).
+
 Para hacerlo a mano:
 
 1. `POST http://127.0.0.1:8000/api/token/` con Body → *form-data*: `username = admin`, `password = admin`. Copiar el valor de `token`.
