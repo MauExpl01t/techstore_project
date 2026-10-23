@@ -31,6 +31,8 @@ una **foto**, que se sube desde el formulario y se muestra en las tarjetas del c
 Sirven para el login del sitio (`/login/`), el panel administrativo (`/admin/`) y para
 **obtener el token de la API** (`/api/token/`).
 
+> ⚠️ **Solo para desarrollo local.** Este usuario, esta contraseña y el token de los ejemplos son datos de prueba de un proyecto académico. En un entorno real hay que cambiar las credenciales, usar contraseñas seguras y no publicar tokens.
+
 ---
 
 ## Pasos de instalación, migración y ejecución
